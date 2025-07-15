@@ -34,20 +34,21 @@ if uploaded_file is not None:
         tmp_file.write(uploaded_file.read())
         tmp_audio_path = tmp_file.name
 
-    st.info("Transcription en cours...")
-    start_time = time.time()
-    result = model.transcribe(tmp_audio_path, language="fr")
-    end_time = time.time()
-    execution_time = end_time - start_time
+    if st.button("Lancer la transcription"):
+        st.info("Transcription en cours...")
+        start_time = time.time()
+        result = model.transcribe(tmp_audio_path, language="fr")
+        end_time = time.time()
+        execution_time = end_time - start_time
 
-    st.success("✅ Transcription terminée !")
-    st.write(f"⏱️ Temps d'exécution : {execution_time:.2f} secondes")
-    st.subheader("Transcription :")
-    st.text_area("Texte transcrit", result["text"], height=300)
+        st.success("✅ Transcription terminée !")
+        st.write(f"⏱️ Temps d'exécution : {execution_time:.2f} secondes")
+        st.subheader("Transcription :")
+        st.text_area("Texte transcrit", result["text"], height=300)
 
-    st.download_button(
-        label="💾 Télécharger la transcription",
-        data=result["text"],
-        file_name=f"transcription_{uploaded_file.name.rsplit('.',1)[0]}.txt",
-        mime="text/plain"
-    )
+        st.download_button(
+            label="💾 Télécharger la transcription",
+            data=result["text"],
+            file_name=f"transcription_{uploaded_file.name.rsplit('.',1)[0]}.txt",
+            mime="text/plain"
+        )
