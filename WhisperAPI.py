@@ -17,7 +17,7 @@ else:
 model_size = st.selectbox(
     "Sélectionnez la taille du modèle Whisper :",
     ("tiny", "base", "small", "medium", "large"),
-    index=3,
+    index=0,
     help="Plus le modèle est grand, meilleure est la qualité, mais plus il est lent et consomme de ressources."
 )
 
