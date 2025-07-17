@@ -1,8 +1,11 @@
 import streamlit as st
 import whisper
 import torch
+
 import time
 import tempfile
+import math
+from pydub import AudioSegment
 
 st.set_page_config(page_title="Whisper Transcription App", layout="centered")
 st.title("🎤 Transcription Audio avec Whisper")
@@ -34,21 +37,42 @@ if uploaded_file is not None:
         tmp_file.write(uploaded_file.read())
         tmp_audio_path = tmp_file.name
 
+    # Parameters for chunking
+    chunk_length_ms = 20 * 1000  # 20 seconds per chunk
+
     if st.button("Lancer la transcription"):
         st.info("Transcription en cours...")
         start_time = time.time()
-        result = model.transcribe(tmp_audio_path, language="fr")
+
+        # Load audio and split into chunks
+        audio = AudioSegment.from_file(tmp_audio_path)
+        total_length_ms = len(audio)
+        num_chunks = math.ceil(total_length_ms / chunk_length_ms)
+        transcription = ""
+        progress_bar = st.progress(0)
+
+        for i in range(num_chunks):
+            start_ms = i * chunk_length_ms
+            end_ms = min((i + 1) * chunk_length_ms, total_length_ms)
+            chunk = audio[start_ms:end_ms]
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as chunk_file:
+                chunk.export(chunk_file.name, format="wav")
+                chunk_path = chunk_file.name
+            result = model.transcribe(chunk_path, language="fr")
+            transcription += result["text"] + "\n"
+            progress_bar.progress((i + 1) / num_chunks)
+
         end_time = time.time()
         execution_time = end_time - start_time
 
         st.success("✅ Transcription terminée !")
         st.write(f"⏱️ Temps d'exécution : {execution_time:.2f} secondes")
         st.subheader("Transcription :")
-        st.text_area("Texte transcrit", result["text"], height=300)
+        st.text_area("Texte transcrit", transcription, height=300)
 
         st.download_button(
             label="💾 Télécharger la transcription",
-            data=result["text"],
+            data=transcription,
             file_name=f"transcription_{uploaded_file.name.rsplit('.',1)[0]}.txt",
             mime="text/plain"
         )
