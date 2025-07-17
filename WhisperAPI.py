@@ -41,15 +41,22 @@ if uploaded_file is not None:
     chunk_length_ms = 20 * 1000  # 20 seconds per chunk
 
     if st.button("Lancer la transcription"):
-        st.info("Transcription en cours...")
+
+        st.info("Chargement et découpage de l'audio...")
         start_time = time.time()
 
-        # Load audio and split into chunks
+        # Load audio with progress bar
+        audio_loading_bar = st.progress(0, text="Chargement de l'audio...")
         audio = AudioSegment.from_file(tmp_audio_path)
+        audio_loading_bar.progress(1.0, text="Audio chargé.")
+        time.sleep(0.2)
+
         total_length_ms = len(audio)
         num_chunks = math.ceil(total_length_ms / chunk_length_ms)
         transcription = ""
-        progress_bar = st.progress(0)
+
+        st.info("Transcription en cours...")
+        progress_bar = st.progress(0, text="Transcription...")
 
         for i in range(num_chunks):
             start_ms = i * chunk_length_ms
@@ -60,7 +67,7 @@ if uploaded_file is not None:
                 chunk_path = chunk_file.name
             result = model.transcribe(chunk_path, language="fr")
             transcription += result["text"] + "\n"
-            progress_bar.progress((i + 1) / num_chunks)
+            progress_bar.progress((i + 1) / num_chunks, text=f"Chunk {i+1}/{num_chunks}")
             time.sleep(0.01)
 
         end_time = time.time()
