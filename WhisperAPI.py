@@ -61,6 +61,7 @@ if uploaded_file is not None:
             result = model.transcribe(chunk_path, language="fr")
             transcription += result["text"] + "\n"
             progress_bar.progress((i + 1) / num_chunks)
+            time.sleep(0.01)
 
         end_time = time.time()
         execution_time = end_time - start_time
